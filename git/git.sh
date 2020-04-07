@@ -22,3 +22,5 @@ git reset --hard
 
 # stage all added and changed files
 git add .
+# list note tree
+git log --oneline --graph --decorate --all
