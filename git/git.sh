@@ -26,3 +26,5 @@ git add .
 git log --oneline --graph --decorate --all
 # overload local changes
 git checkout filename/globbing
+# change color.ui
+git config --global color.ui auto
