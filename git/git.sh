@@ -24,7 +24,10 @@ git reset --hard
 git add .
 # list note tree
 git log --oneline --graph --decorate --all
+git reflog
+git log -2
 # overload local changes
 git checkout filename/globbing
 # change color.ui
 git config --global color.ui auto
+
