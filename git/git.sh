@@ -24,3 +24,5 @@ git reset --hard
 git add .
 # list note tree
 git log --oneline --graph --decorate --all
+# overload local changes
+git checkout filename/globbing
