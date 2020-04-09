@@ -1,0 +1,19 @@
+新建项目->library c++库->共享库,工程名为为 sharedLib
+编译这个项目生成 sharedLib.dll 和 sharedLib.lib 文件
+
+新建项目->application qt ...,工程名为 main
+
+静态加载文件:
+将 sharedLib.h 和 sharedLib_global.h.h 文件放到任意文件夹下->在main的main.cpp中包含这两个头文件
+
+在main.pro文件中添加sharedLib.lib的信息:
+在任意位置新建文件夹debug,将sharedLib.lib复制到debug下->
+右击main工程名->添加库->外部库->定位到sharedLib.lib->完成
+
+在main.cpp中可以象使用普通的类一样使用sharedLib类
+
+如果没有sharedLib.lib文件,无法通过编译,即无法生成main.exe文件
+
+生成main.exe文件后,要把sharedLib.dll文件main.exe文件放到同一目录下,main.exe才能正常运行
+
+也就是说sharedLib.lib只在main工程编译时有用,sharedLib.dll在运行时有用
