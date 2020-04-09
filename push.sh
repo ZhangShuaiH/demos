@@ -7,7 +7,7 @@ if [ $# != 1 ];then
 	exit 1
 fi
 set -x
-git add .
+git add --all # include add change remove files
 git commit -m"$1"
 git push
 git status
