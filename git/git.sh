@@ -31,3 +31,5 @@ git checkout filename/globbing
 # change color.ui
 git config --global color.ui auto
 
+# only show file change add or delete operations
+git diff commitID --name-status
