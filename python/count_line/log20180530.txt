@@ -1,0 +1,7 @@
+fileNames and lineNumber
+
+E:\Trunk\Src\common\mysql.cpp	205
+E:\Trunk\Src\common\log.cpp	24
+E:\Trunk\Src\common\itable.cpp	396
+
+all lines: 625

@@ -1,0 +1,10 @@
+# 源码路径, 一个路径写一行,相对路径或绝对路径都可以
+E:\Trunk\Src\ticket\src\
+E:\Trunk\Src\common\
+E:\Trunk\Src\graphicTicketOpen\
+E:\Trunk\Src\term\
+E:\Trunk\Src\ticketManager
+
+# 文件类型, 一个类型写一行
+.cpp
+.h
