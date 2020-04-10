@@ -3,5 +3,3 @@
 
 echo "1"
 echo "2"
-echo '啊撒旦看风景'
-ijjhj
