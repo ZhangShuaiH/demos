@@ -2,34 +2,36 @@
 # Created Time: 2020-04-06 12:55:26
 
 git init
-# local associate remote repository
+# 添加远程仓库，别名为 origin
 git remote add origin url
-# push and associate remote master branch
+# 关联远程仓库
 git push -u origin master
 git status
-# del, add or change file at local
+# 将本地修改同步到index中
 git add/rm file 
-# commit all changes to repository cache
+# 将修改同步到本地库
 git commit -m'mark' 
-# push local commits to remote master branch
+# 将修改推送到远程库
 git push origin master
-# pull remote master to local
+# 同步远程库到本地
 git pull origin master
 
 
-# force down remote to local
+# 强制同步远程库到本地
 git reset --hard
 
-# stage all added and changed files
+# 提交本地添加或修改的文件
 git add .
-# list note tree
+# 提交本地添加、修改或删除的文件
+git add --all
+# 图形化显示日志
 git log --oneline --graph --decorate --all
 git reflog
 git log -2
-# overload local changes
+# 覆盖本地修改的文件
 git checkout filename/globbing
 # change color.ui
 git config --global color.ui auto
 
-# only show file change add or delete operations
+# 只显示修改删除添加的文件名称
 git diff commitID --name-status
