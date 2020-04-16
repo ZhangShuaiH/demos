@@ -1,0 +1,1 @@
+g++ -M main.cpp # 自动生成 make rule
