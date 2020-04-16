@@ -78,3 +78,33 @@ special-var:
 	-echo variables:  $(.VARIABLES)
 	echo extra_prereqs: $(.EXTRA_PREREQS)
 	echo cc: $(CC)
+
+
+# 函数
+## 字符串函数
+### 字符串替换
+func-str:
+	echo $(subst ee, EE, feet on the street) # fEEt on the strEEt
+### 字符串按模式替换
+	echo $(patsubst %.c, %.o, 1.c 2.c 3.b) # 1.o 2.o 3.b
+### 去空格, 去除首位空格，将中间的连续空格换成一个空格
+	echo $(strip a   b    c  ) # a b c
+### 查找字符串,没有则返回空字符串
+	echo $(findstring a, a b c) # a
+### 按模式过滤字符串,模式可有多个
+	echo $(filter %.c %.s, a.c b.c a.s b.o) # a.c b.c a.s
+### 按模式反过滤字符串,模式可有多个
+	echo $(filter-out %.c %.s, a.c b.c a.s b.o) # b.o
+### 排序字符串数组，并去重
+	echo $(sort b.c a.c a.c ) # a.c b.c
+### 获取第n个字符串
+	echo $(word 2, a b c) # b
+### 获取第1个字符串
+	echo $(firstword a b c)
+### 获取最后一个字符串
+	echo $(lastword a b c)
+### 截取字符串数组的子数组
+	echo $(wordlist 2,3,a b c) # b c
+### 获取数组长度
+	echo $(words a b c) # 3
+# 文件名函数
