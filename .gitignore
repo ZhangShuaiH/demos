@@ -32,6 +32,7 @@
 *.app
 
 
-log
 *.class
-main.cpp
+log
+/main.cpp
+/build.sh
