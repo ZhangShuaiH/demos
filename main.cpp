@@ -15,6 +15,7 @@ int main()
 	}
 
 	cout<<clock()<<endl;
+
 	
 	return 0;
 }

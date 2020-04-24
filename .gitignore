@@ -34,7 +34,4 @@
 
 log
 *.class
-
-# me
-./main.cpp
-./build.sh
+main.cpp
