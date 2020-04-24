@@ -34,3 +34,7 @@
 
 log
 *.class
+
+# me
+./main.cpp
+./build.sh

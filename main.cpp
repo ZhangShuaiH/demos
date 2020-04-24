@@ -3,12 +3,18 @@
  ************************************************************************/
 
 #include <iostream>
-#include <unistd.h>
+//#include <unistd.h> // sleep
 using namespace std;
 int main()
 {
 	cout<<"Hello World!"<<endl;
-	sleep(2);
 	cout<<"good"<<endl;
+	for(size_t i=0; i<1000000; i++)
+	{
+		new int(i);
+	}
+
+	cout<<clock()<<endl;
+	
 	return 0;
 }
