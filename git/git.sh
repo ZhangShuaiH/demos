@@ -35,3 +35,5 @@ git config --global color.ui auto
 
 # 只显示修改删除添加的文件名称
 git diff commitID --name-status
+
+# gitignore 出现在版本库中的文件无法忽略， /main.cpp 仅匹配当前文件夹中的main.cpp
