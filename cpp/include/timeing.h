@@ -20,5 +20,5 @@
 //{
 //	TIMEING(slee(1));
 //}
-
+#define TIMEING2 printf("clock %ld\n", clock()) // 这种方式更加高效
 #endif
