@@ -14,7 +14,7 @@
 	statement; \
 	gettimeofday(&t2, NULL); \
 	long dif = (t2.tv_sec - t1.tv_sec)*1000000 + (t2.tv_usec - t1.tv_usec); \
-	printf("%d us\n", dif); \
+	std::cout<<__FILE__<<':'<<__FUNCTION__<<':'<<__LINE__<<":\t\t";printf("%d us\n", dif); \
 }
 //void demo()
 //{
