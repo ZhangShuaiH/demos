@@ -5,7 +5,7 @@
 #include <iostream>
 #include <typeinfo>
 #include <sstream>
-#include "../include/timeing.h"
+#include "../../include/timeing.h"
 
 using namespace std;
 const int SIZE=100000000;
