@@ -8,11 +8,11 @@
 #include <typeinfo>
 #include <string.h>
 #include <map>
-#include "timeing.h"
+#include "../include/timeing.h"
 
 using namespace std;
 
-void func(long long ll)
+void func(long long ll)// 不传引用会更快
 {
     int i=ll;
 }
