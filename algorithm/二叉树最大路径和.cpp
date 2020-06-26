@@ -18,6 +18,7 @@ bool valid(const pNode& node, const set<pNode>& visited)
 {
     return (visited.find(node->rigt)!=visited.end() && visited.find(node->left)!=visited.end());
 }
+// 迭代法
 int treeMaxSum(const pTree& root)
 {
     if(root == NULL)
@@ -58,6 +59,17 @@ int treeMaxSum(const pTree& root)
     }
     return maxSum;
 }
+// 递归法
+int treeMaxSum2(const pTree& root)
+{
+    if(!root) return 0;
+    int sum1 = treeMaxSum2(root->left);
+    int sum2 = treeMaxSum2(root->rigt);
+    int res = max(sum1, sum2);
+    if(root->val > 0) res += root->val;
+    return res;
+}
+
 
 pTree buildTree()
 {
