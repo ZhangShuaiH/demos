@@ -10,9 +10,10 @@ struct Node {
 
 Node *reverseList_recurse(Node* head){// 递归实现
     if(head==nullptr || head->next==nullptr)return head;
-    Node *tail = head->next;
+    
     Node *newHead = reverseList_recurse(head->next);
-    tail->next = head;
+    
+    head->next->next = head;
     head->next = nullptr;
     return newHead;
 }
