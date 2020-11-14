@@ -3,5 +3,5 @@
 
 set -xe
 
-g++  main.cpp -lpthread
+g++  main.cpp WholeSaler.cpp -lpthread
 ./a.out 
