@@ -5,6 +5,8 @@
 #include <vector>
 #include <pthread.h>
 #include <assert.h>
+#include <unistd.h>
+#include <stdio.h>
 #include "WholeSaler.h"
 using namespace std;
 LG::LG(pthread_mutex_t& mut):mmut(mut)
@@ -15,7 +17,21 @@ LG::~LG()
 {
 	pthread_mutex_unlock(&mmut);
 }
-WholeSaler::WholeSaler(const vector<Producer*> &producers, const vector<Consumer*> &consumers, vector<void*> &repository):
+Producer::Producer(const int name):mName(name){}
+bool Producer::produce(int &product, const long long productIndex)
+{
+	usleep(10000);
+	if(mI++ >= 30)return false;
+	product = mI;
+	printf("%dp%d\n",mI, mName);
+	return true;
+}
+void Consumer::consume(const int &product, const long long productIndex)
+{
+	usleep(10000);
+	printf("%dc%d\n",product, productIndex);
+}
+WholeSaler::WholeSaler(const vector<Producer*> &producers, const vector<Consumer*> &consumers, vector<int> &repository):
                         mProducers(producers),mConsumers(consumers),mRepository(repository),mProCount(producers.size()),mConCount(mConsumers.size()),mRepSize(repository.size())
 {
 }
@@ -67,11 +83,17 @@ void* WholeSaler::consumeThread(void *param)
 				pthread_cond_wait(&pIns->mConCond, &pIns->mMut);
 			}
 		}
-        con->consume(pIns->mRepository.at(pIns->mConPos%pIns->mRepSize), pIns->mConPos);
-		if(pIns->mRepStatus.at(pIns->mConPos%pIns->mRepSize))
+		switch(pIns->mRepStatus.at(pIns->mConPos%pIns->mRepSize))
 		{
-			if(++exitCount == pIns->mProCount)
-				return NULL;
+            case 0:
+                con->consume(pIns->mRepository.at(pIns->mConPos%pIns->mRepSize), pIns->mConPos);
+                break;
+			case -2:
+				if(++exitCount == pIns->mProCount)
+					return NULL;
+				break;
+			default:
+				assert(false);
 		}
 		pIns->mRepStatus.at(pIns->mConPos%pIns->mRepSize) = -1;
 		{

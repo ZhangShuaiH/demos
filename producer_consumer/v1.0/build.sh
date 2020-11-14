@@ -4,4 +4,4 @@
 set -xe
 
 g++  main.cpp WholeSaler.cpp -lpthread
-time ./a.out 
+./a.out 
