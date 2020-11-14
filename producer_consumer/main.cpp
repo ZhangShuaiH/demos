@@ -44,6 +44,15 @@ public:
 	int i;
 	const int flag;
 };
+class Consumer
+{
+public:
+	void consume(const int &p)
+	{
+		usleep(10000);
+		printf("%dc\n",p);
+	}
+};
 void* produceThread(void*)
 {
 	static int flag=0;
@@ -70,19 +79,15 @@ void* produceThread(void*)
 void* consumeThread(void*)
 {
 	int exitCount = 0;
+	Consumer con;
 	while(true)
 	{
 		{
 			LG lg(mut);
-			while(ppos-cpos <= 0)
+			while(ppos-cpos<=0 || buffs.at(cpos%buffs.size())==-1)
 			{
 				pthread_cond_wait(&ccond, &mut);
 			}
-		}
-		{
-			LG lg(mut);
-			while(buffs.at(cpos%buffs.size()) == -1)
-				pthread_cond_wait(&ccond, &mut);
 		}
 		switch(buffs.at(cpos%buffs.size()))
 		{
@@ -94,8 +99,7 @@ void* consumeThread(void*)
 					return NULL;
 				break;
 			default:
-				usleep(10000);
-				printf("%dc\n",buffs.at(cpos%buffs.size()));
+				con.consume(buffs.at(cpos%buffs.size()));
 		}
 		buffs.at(cpos%buffs.size()) = -1;
 		{
