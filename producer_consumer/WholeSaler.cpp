@@ -34,59 +34,75 @@ void Consumer::consume(const int &p)
 	usleep(10000);
 	printf("%dc\n",p);
 }
-void* WholeSaler::produceThread(void*)
+WholeSaler::WholeSaler(const vector<Producer*> &producers, const vector<Consumer*> &consumers, vector<int> &repository):
+                        mProducers(producers),mConsumers(consumers),mRepository(repository),mProCount(producers.size()),mConCount(mConsumers.size())
 {
-	static int flag=0;
-	Producer pro(flag++);
+}
+void* WholeSaler::produceThread(void *param)
+{
+    WholeSaler* pIns = reinterpret_cast<WholeSaler*>(param);
+    Producer *pro = NULL;
+    {
+        LG lg(pIns->mMut);
+        pro = pIns->mProducers.at(pIns->mProTidNo++);
+    }
 	while(true)
 	{
 		int tppos = -1;
 		{
-			LG lg(mMut);
-			while(ppos-cpos >= mBuffs.size())
-				pthread_cond_wait(&mPcond, &mMut);
-			tppos = ppos++;
+			LG lg(pIns->mMut);
+			while(pIns->mProPos-pIns->mConPos >= pIns->mRepSize)
+				pthread_cond_wait(&pIns->mProCond, &pIns->mMut);
+			tppos = pIns->mProPos++;
 		}
-		if(!pro.produce(mBuffs.at(tppos%buffs.size())))
+		if(pro->produce(pIns->mRepository.at(tppos%pIns->mRepSize)))
+        {
+            pIns->mRepStatus.at(tppos%pIns->mRepSize) = 0;
+        }else
 		{
-			mBuffs.at(tppos%buffs.size()) = -2;
-			pthread_cond_broadcast(&mCcond);
+			pIns->mRepStatus.at(tppos%pIns->mRepSize) = -2;
+			pthread_cond_broadcast(&pIns->mConCond);
 			break;
 		}
-		pthread_cond_broadcast(&mCcond);
+		pthread_cond_broadcast(&pIns->mConCond);
 	}
 	return NULL;
 }
 void* WholeSaler::consumeThread(void*)
 {
+    WholeSaler* pIns = reinterpret_cast<WholeSaler*>(param);
+    Consumer *con = NULL;
+    {
+        LG lg(pIns->mMut);
+        con = pIns->mConsumers.at(pIns->mConTidNo++);
+    }
 	int exitCount = 0;
-	Consumer con;
 	while(true)
 	{
 		{
-			LG lg(mMut);
-			while(ppos-cpos<=0 || mBuffs.at(cpos%buffs.size())==-1)
+			LG lg(pIns->mMut);
+			while(pIns->mProPos-pIns->mConPos<=0 || pIns->mRepStatus.at(pIns->mConPos%pIns->mRepSize)==-1)
 			{
-				pthread_cond_wait(&mCcond, &mMut);
+				pthread_cond_wait(&pIns->mConCond, &pIns->mMut);
 			}
 		}
-		switch(mBuffs.at(cpos%buffs.size()))
+		switch(pIns->mRepStatus.at(pIns->mConPos%pIns->mRepSize))
 		{
-			case -1:
-				assert(false);
-				break;
+            case 0:
+                con->consume(pIns->mRepository.at(pIns->mConPos%pIns->mRepSize));
+                break;
 			case -2:
-				if(++exitCount == mPcount)
+				if(++exitCount == pIns->mProCount)
 					return NULL;
 				break;
 			default:
-				con.consume(mBuffs.at(cpos%buffs.size()));
+				assert(false);
 		}
-		mBuffs.at(cpos%buffs.size()) = -1;
+		pIns->mRepStatus.at(pIns->mConPos%pIns->mRepSize) = -1;
 		{
-			LG lg(mMut);
-			++cpos;
-			pthread_cond_broadcast(&mPcond);
+			LG lg(pIns->mMut);
+			++pIns->mConPos;
+			pthread_cond_broadcast(&pIns->mProCond);
 		}
 	}
 	return NULL;
@@ -94,23 +110,30 @@ void* WholeSaler::consumeThread(void*)
 
 void WholeSaler::Run(bool async)
 {
-	pthread_t ptids[mPcount];
-	pthread_t ctid;
-	pthread_cond_init(&mPcond, NULL);
-	pthread_cond_init(&mCcond, NULL);
+    mProPos = mConPos = mProTidNo = mConTidNo = 0;
+    assert(mConCount == 1);
+	pthread_t ptids[mProCount];
+	pthread_t ctids[mConCount];
+	pthread_cond_init(&mProCond, NULL);
+	pthread_cond_init(&mConCond, NULL);
 	pthread_mutex_init(&mMut, NULL);
-	mBuffs.resize(7);
-	for(int i=0; i<mBuffs.size(); i++)buffs.at(i) = -1;
-	for(int i=0; i<mPcount; i++)
+	mRepStatus.resize(mRepSize, -1);
+	for(int i=0; i<mProCount; i++)
 	{
 		pthread_create(&ptids[i], NULL, produceThread, this);
 	}
-	pthread_create(&ctid, NULL, consumeThread, this);
-	for(int i=0; i<mPcount; i++)
+    for(int i=0; i<mConCount; i++)
+    {
+        pthread_create(&ctids[i], NULL, consumeThread, this);
+    }
+	for(int i=0; i<mProCount; i++)
 	{
 		pthread_join(ptids[i], NULL);
 	}
-	pthread_join(ctid, NULL);
+    for(int i=0; i<mConCount; i++)
+    {
+        pthread_join(ctids[i], NULL);
+    }
 
 	return 0;
 }
