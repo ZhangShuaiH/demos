@@ -5,6 +5,7 @@
 #include <vector>
 #include <pthread.h>
 #include <assert.h>
+#include <stdio.h>
 #include "WholeSaler.h"
 using namespace std;
 LG::LG(pthread_mutex_t& mut):mmut(mut)
@@ -32,7 +33,7 @@ void* WholeSaler::produceThread(void *param)
 		int tppos = -1;
 		{
 			LG lg(pIns->mMut);
-			while(pIns->mProPos-pIns->mConPos >= pIns->mRepSize)
+			while(pIns->mRepStatus.at(pIns->mProPos%pIns->mRepSize)!=-1)
 				pthread_cond_wait(&pIns->mProCond, &pIns->mMut);
 			tppos = pIns->mProPos++;
 		}
@@ -43,7 +44,7 @@ void* WholeSaler::produceThread(void *param)
 		{
 			pIns->mRepStatus.at(tppos%pIns->mRepSize) = -2;
 			pthread_cond_broadcast(&pIns->mConCond);
-			break;
+			return NULL;
 		}
 		pthread_cond_broadcast(&pIns->mConCond);
 	}
@@ -57,36 +58,53 @@ void* WholeSaler::consumeThread(void *param)
         LG lg(pIns->mMut);
         con = pIns->mConsumers.at(pIns->mConTidNo++);
     }
-	int exitCount = 0;
 	while(true)
 	{
 		{
 			LG lg(pIns->mMut);
-			while(pIns->mProPos-pIns->mConPos<=0 || pIns->mRepStatus.at(pIns->mConPos%pIns->mRepSize)==-1)
+			if(pIns->mExitCount == pIns->mProCount)
+				return NULL;
+		}
+		int tcpos = -1;
+		{
+			LG lg(pIns->mMut);
+			while(pIns->mRepStatus.at(pIns->mConPos%pIns->mRepSize)==-1)
 			{
 				pthread_cond_wait(&pIns->mConCond, &pIns->mMut);
 			}
+			tcpos = pIns->mConPos++;
 		}
-        con->consume(pIns->mRepository.at(pIns->mConPos%pIns->mRepSize), pIns->mConPos);
-		if(pIns->mRepStatus.at(pIns->mConPos%pIns->mRepSize))
+		switch(pIns->mRepStatus.at(tcpos%pIns->mRepSize))
 		{
-			if(++exitCount == pIns->mProCount)
-				return NULL;
+		case -2:
+			{
+				LG lg(pIns->mMut);
+				++pIns->mExitCount;
+			}
+			break;
+		case 0:
+			pIns->print();
+			con->consume(pIns->mRepository.at(tcpos%pIns->mRepSize), tcpos);
+			break;
+		default:
+			assert(false);
 		}
-		pIns->mRepStatus.at(pIns->mConPos%pIns->mRepSize) = -1;
-		{
-			LG lg(pIns->mMut);
-			++pIns->mConPos;
-			pthread_cond_broadcast(&pIns->mProCond);
-		}
+		pIns->mRepStatus.at(tcpos%pIns->mRepSize) = -1;
+		pthread_cond_broadcast(&pIns->mProCond);
 	}
 	return NULL;
 }
-
+void WholeSaler::print()
+{
+	LG lg(mMut);
+	for(int i=0; i<mRepository.size(); i++)
+	{
+		printf("%d ", *(int*)mRepository.at(i));
+	}printf("\n");
+}
 void WholeSaler::run(bool async)
 {
-    mProPos = mConPos = mProTidNo = mConTidNo = 0;
-    assert(mConCount == 1);
+	mExitCount = mProPos = mConPos = mProTidNo = mConTidNo = 0;
 	pthread_t ptids[mProCount];
 	pthread_t ctids[mConCount];
 	pthread_cond_init(&mProCond, NULL);

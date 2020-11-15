@@ -31,6 +31,7 @@ public:
     WholeSaler(const std::vector<Producer*> &producers, const std::vector<Consumer*> &consumers, std::vector<void*> &repository);
 	void run(bool async=false);
 private:
+	void print();
 	static void* produceThread(void*);
 	static void* consumeThread(void*);
 
@@ -41,7 +42,7 @@ private:
 	std::vector<void*> mRepository;
     std::vector<int> mRepStatus;
 	const int mProCount, mConCount, mRepSize;
-    int mProTidNo, mConTidNo;
+    int mExitCount, mProTidNo, mConTidNo;
 	long long mProPos, mConPos;
 };
 #endif // WHOLESALER_H

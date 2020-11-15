@@ -3,5 +3,5 @@
 
 set -xe
 
-g++  main.cpp WholeSaler.cpp -lpthread
+g++  -g 1main.cpp WholeSaler.cpp -lpthread
 time ./a.out 
