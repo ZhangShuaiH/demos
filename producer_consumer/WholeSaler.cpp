@@ -17,7 +17,7 @@ LG::~LG()
 	pthread_mutex_unlock(&mmut);
 }
 WholeSaler::WholeSaler(const vector<Producer*> &producers, const vector<Consumer*> &consumers, vector<void*> &repository):
-                        mProducers(producers),mConsumers(consumers),mRepository(repository),mProCount(producers.size()),mConCount(mConsumers.size()),mRepSize(repository.size())
+                        mProducers(producers),mConsumers(consumers),mRepository(repository),mProCount(producers.size()),mConCount(mConsumers.size()),mRepSize(repository.size()),mStatus(UNRUNNING)
 {
 }
 void* WholeSaler::produceThread(void *param)
@@ -102,16 +102,9 @@ void* WholeSaler::consumeThread(void *param)
 	}
 	return NULL;
 }
-void WholeSaler::print()
-{
-	LG lg(mMut);
-	for(int i=0; i<mRepository.size(); i++)
-	{
-		printf("%d ", *(int*)mRepository.at(i));
-	}printf("\n");
-}
 void WholeSaler::run(bool async)
 {
+	mStatus = RUNNING;
 	assert(mRepSize>0);
 	assert(mProCount>0);
 	mProExitedCount = mConExitedCount = mProPos = mConPos = mProTidNo = mConTidNo = 0;
@@ -131,6 +124,14 @@ void WholeSaler::run(bool async)
     }
 	if(async)
 	{
+		for(int i=0; i<mProCount; i++)
+		{
+			pthread_detach(ptids[i]);
+		}
+	    for(int i=0; i<mConCount; i++)
+	    {
+	        pthread_detach(ctids[i]);
+	    }
 	}else
 	{
 		for(int i=0; i<mProCount; i++)
@@ -142,4 +143,22 @@ void WholeSaler::run(bool async)
 	        pthread_join(ctids[i], NULL);
 	    }
 	}
+}
+void WholeSaler::print()
+{
+	LG lg(mMut);
+	for(int i=0; i<mRepository.size(); i++)
+	{
+		printf("%d ", *(int*)mRepository.at(i));
+	}printf("\n");
+}
+WholeSaler::STATUS WholeSaler::getStatus()
+{
+	if(mConExitedCount == mConCount)
+		mStatus = SUCCESSED;
+	return mStatus;
+}
+long long WholeSaler::getConsumedProductCount()
+{
+	return mConPos;
 }

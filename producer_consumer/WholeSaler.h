@@ -28,21 +28,33 @@ public:
 class WholeSaler
 {
 public:
+	enum STATUS
+	{
+		UNRUNNING,
+		RUNNING,
+		FAILED,
+		SUCCESSED
+	};
     WholeSaler(const std::vector<Producer*> &producers, const std::vector<Consumer*> &consumers, std::vector<void*> &repository);
 	void run(bool async=false);
-private:
 	void print();
+	STATUS getStatus();
+	long long getConsumedProductCount();
+private:
 	static void* produceThread(void*);
 	static void* consumeThread(void*);
 
 	pthread_mutex_t mMut;
 	pthread_cond_t mProCond, mConCond;
+
     const std::vector<Producer*> &mProducers;
     const std::vector<Consumer*> &mConsumers;
 	std::vector<void*> mRepository;
     std::vector<int> mRepStatus;
+	
 	const int mProCount, mConCount, mRepSize;
     int mProExitedCount, mConExitedCount, mProTidNo, mConTidNo;
 	long long mProPos, mConPos;
+	STATUS mStatus;
 };
 #endif // WHOLESALER_H
