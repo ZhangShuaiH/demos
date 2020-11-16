@@ -33,7 +33,7 @@ void* WholeSaler::produceThread(void *param)
 		int tppos = -1;
 		{
 			LG lg(pIns->mMut);
-			while(pIns->mRepStatus.at(pIns->mProPos%pIns->mRepSize)!=-1)
+			while(pIns->mProPos-pIns->mConPos >= pIns->mRepSize || pIns->mRepStatus.at(pIns->mProPos%pIns->mRepSize)!=-1)
 				pthread_cond_wait(&pIns->mProCond, &pIns->mMut);
 			tppos = pIns->mProPos++;
 		}
@@ -43,10 +43,16 @@ void* WholeSaler::produceThread(void *param)
         }else
 		{
 			pIns->mRepStatus.at(tppos%pIns->mRepSize) = -2;
-			pthread_cond_broadcast(&pIns->mConCond);
+			{
+				LG lg(pIns->mMut);
+				pthread_cond_broadcast(&pIns->mConCond);
+			}
 			return NULL;
 		}
-		pthread_cond_broadcast(&pIns->mConCond);
+		{
+			LG lg(pIns->mMut);
+			pthread_cond_broadcast(&pIns->mConCond);
+		}
 	}
 	return NULL;
 }
@@ -60,16 +66,16 @@ void* WholeSaler::consumeThread(void *param)
     }
 	while(true)
 	{
-		{
-			LG lg(pIns->mMut);
-			if(pIns->mExitCount == pIns->mProCount)
-				return NULL;
-		}
 		int tcpos = -1;
 		{
 			LG lg(pIns->mMut);
-			while(pIns->mRepStatus.at(pIns->mConPos%pIns->mRepSize)==-1)
+			while(pIns->mProPos-pIns->mConPos<=0 || pIns->mRepStatus.at(pIns->mConPos%pIns->mRepSize)==-1)
 			{
+				if(pIns->mProExitedCount == pIns->mProCount)
+				{
+					++pIns->mConExitedCount;
+					return NULL;
+				}
 				pthread_cond_wait(&pIns->mConCond, &pIns->mMut);
 			}
 			tcpos = pIns->mConPos++;
@@ -79,18 +85,20 @@ void* WholeSaler::consumeThread(void *param)
 		case -2:
 			{
 				LG lg(pIns->mMut);
-				++pIns->mExitCount;
+				++pIns->mProExitedCount;
 			}
 			break;
 		case 0:
-			pIns->print();
 			con->consume(pIns->mRepository.at(tcpos%pIns->mRepSize), tcpos);
 			break;
 		default:
 			assert(false);
 		}
 		pIns->mRepStatus.at(tcpos%pIns->mRepSize) = -1;
-		pthread_cond_broadcast(&pIns->mProCond);
+		{
+			LG lg(pIns->mMut);
+			pthread_cond_broadcast(&pIns->mProCond);
+		}
 	}
 	return NULL;
 }
@@ -104,7 +112,9 @@ void WholeSaler::print()
 }
 void WholeSaler::run(bool async)
 {
-	mExitCount = mProPos = mConPos = mProTidNo = mConTidNo = 0;
+	assert(mRepSize>0);
+	assert(mProCount>0);
+	mProExitedCount = mConExitedCount = mProPos = mConPos = mProTidNo = mConTidNo = 0;
 	pthread_t ptids[mProCount];
 	pthread_t ctids[mConCount];
 	pthread_cond_init(&mProCond, NULL);

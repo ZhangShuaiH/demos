@@ -42,7 +42,7 @@ private:
 	std::vector<void*> mRepository;
     std::vector<int> mRepStatus;
 	const int mProCount, mConCount, mRepSize;
-    int mExitCount, mProTidNo, mConTidNo;
+    int mProExitedCount, mConExitedCount, mProTidNo, mConTidNo;
 	long long mProPos, mConPos;
 };
 #endif // WHOLESALER_H
